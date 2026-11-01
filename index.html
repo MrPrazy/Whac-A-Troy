@@ -102,7 +102,7 @@
         let isPlaying = false;
         let lastHole = null;
         let currentMoleHole = null;
-        let popDuration = 1800; // Increased starting time mole stays up (ms)
+        let popDuration = 2200; // Increased starting time mole stays up (2.2 seconds for plenty of time)
 
         // Load High Score from Local Storage
         let highScore = localStorage.getItem('whac_troy_highScore') || 0;
@@ -142,11 +142,6 @@
                 mole.classList.remove('mole-up');
                 mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
-                
-                // Speed up difficulty slightly as score increases (keeping min duration higher so it's not too fast)
-                if (popDuration > 800) {
-                    popDuration = Math.max(800, 1800 - (score * 30));
-                }
             });
 
             hole.appendChild(pit);
@@ -176,7 +171,6 @@
             }
 
             const chosen = randomHole();
-            // Find index of chosen hole
             const chosenIndex = holes.indexOf(chosen);
             currentMoleHole = chosenIndex;
 
@@ -197,7 +191,7 @@
             // Reset state
             score = 0;
             timeLeft = 30;
-            popDuration = 1800;
+            popDuration = 2200;
             scoreDisplay.textContent = score;
             timerDisplay.textContent = timeLeft;
             isPlaying = true;
@@ -219,8 +213,7 @@
             const runMoles = () => {
                 if (!isPlaying) return;
                 popMole();
-                // Random interval between pops (giving more time to react)
-                const nextTime = Math.random() * 600 + popDuration;
+                const nextTime = Math.random() * 800 + popDuration;
                 moleInterval = setTimeout(runMoles, nextTime);
             };
             runMoles();
