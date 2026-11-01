@@ -3,38 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whac-A-Troy Arcade</title>
+    <title>Whac-A-Troy</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, button, span, h1, p {
             font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
         }
         body {
-            /* Background image set to bg.png with fallback gradient */
-            background: linear-gradient(rgba(9, 9, 11, 0.75), rgba(9, 9, 11, 0.75)), url('bg.png') center/cover no-repeat fixed;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
             min-height: 100vh;
         }
         .cabinet-shadow {
             box-shadow: 0 0 50px rgba(79, 70, 229, 0.4), inset 0 0 30px rgba(0, 0, 0, 0.8);
         }
-        /* Mole pop animation with longer duration */
         @keyframes popUp {
             0% { transform: translateY(100%); }
             100% { transform: translateY(0%); }
         }
         .mole-up {
-            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            animation: popUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        /* Custom hammer cursor when active */
         .hammer-active {
             cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewport='0 0 100 100' style='fill:black;font-size:30px;'><text y='30'>🔨</text></svg>"), auto !important;
         }
     </style>
 </head>
 <body class="text-white flex flex-col items-center justify-center p-4">
-
-    <!-- Audio Element for Ouch Sound -->
-    <audio id="ouchAudio" src="ouch.mp3" preload="auto"></audio>
 
     <!-- Main Arcade Cabinet Container -->
     <div class="w-full max-w-xl bg-slate-900 border-4 border-indigo-500 rounded-3xl cabinet-shadow p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
@@ -62,23 +56,26 @@
             </div>
         </div>
 
-        <!-- Game Grid (3x3 Holes) -->
-        <div id="gameGrid" class="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-md aspect-square bg-slate-950 p-4 rounded-2xl border-4 border-slate-800 shadow-2xl relative">
+        <!-- Audio Element for Ouch Sound -->
+        <audio id="ouchAudio" src="ouch.mp3" preload="auto"></audio>
+
+        <!-- Game Grid (3x3 Holes) with bg2.png background -->
+        <div id="gameGrid" class="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-md aspect-square p-4 rounded-2xl border-4 border-slate-800 shadow-2xl relative bg-cover bg-center" style="background-image: url('bg2.png'); background-color: #020617;">
             <!-- 9 Holes will be generated via JavaScript -->
         </div>
 
-        <!-- Controls & Start Overlay / Buttons -->
+        <!-- Controls & Start Button -->
         <div class="mt-6 w-full flex flex-col items-center gap-3">
             <button id="startBtn" class="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-extrabold text-base sm:text-lg rounded-xl shadow-lg transform active:scale-95 transition-all duration-150 border-b-4 border-amber-800">
                 START GAME
             </button>
         </div>
 
-        <!-- Custom Notification / Message Box -->
+        <!-- Game Over Modal Overlay -->
         <div id="modalOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm hidden flex flex-col items-center justify-center p-6 z-50 text-center">
             <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-sm w-full shadow-2xl">
                 <h3 id="modalTitle" class="text-lg sm:text-xl text-yellow-400 mb-3 font-bold">GAME OVER</h3>
-                <p id="modalMessage" class="text-slate-300 text-sm mb-6">Great job! You whacked Troy 14 times.</p>
+                <p id="modalMessage" class="text-slate-300 text-sm mb-6">Great job! You whacked Troy 0 times.</p>
                 <button id="modalBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-md">
                     PLAY AGAIN
                 </button>
@@ -88,7 +85,7 @@
     </div>
 
     <script>
-        // Game State Variables
+        // Game DOM Elements
         const grid = document.getElementById('gameGrid');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const timerDisplay = document.getElementById('timerDisplay');
@@ -98,7 +95,6 @@
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
         const modalBtn = document.getElementById('modalBtn');
-        const ouchSound = document.getElementById('ouchSound');
 
         let score = 0;
         let timeLeft = 30;
@@ -106,38 +102,29 @@
         let moleInterval = null;
         let isPlaying = false;
         let lastHole = null;
-        let currentMoleHole = null;
-        let popDuration = 2200; // Increased starting time mole stays up (2.2 seconds for plenty of time)
-
-        // Load High Score from Local Storage
-        let highScore = localStorage.getItem('whac_troy_highScore') || 0;
-        highScoreDisplay.textContent = highScore;
-
         // Initialize 9 holes
         const holes = [];
-        const ouchAudio = document.getElementById('ouchAudio');
-
         for (let i = 0; i < 9; i++) {
             const hole = document.createElement('div');
-            hole.classList.add('relative', 'bg-slate-900', 'rounded-2xl', 'overflow-hidden', 'border-4', 'border-slate-800', 'flex', 'items-end', 'justify-center', 'cursor-pointer', 'shadow-inner');
+            hole.classList.add('relative', 'bg-slate-900/60', 'backdrop-blur-xs', 'rounded-2xl', 'overflow-hidden', 'border-4', 'border-slate-800/80', 'flex', 'items-end', 'justify-center', 'cursor-pointer', 'shadow-inner');
             
             // Inner dirt pit
             const pit = document.createElement('div');
-            pit.classList.add('absolute', 'bottom-0', 'w-full', 'h-1/2', 'bg-amber-950', 'rounded-t-full', 'border-t-4', 'border-amber-900', 'flex', 'items-center', 'justify-center', 'z-10');
+            pit.classList.add('absolute', 'bottom-0', 'w-full', 'h-1/2', 'bg-amber-950/90', 'rounded-t-full', 'border-t-4', 'border-amber-900', 'flex', 'items-center', 'justify-center', 'z-10');
             
-            // Mole Element representing Troy (Removed border-4 border-yellow-400 as requested)
+            // Mole Element representing Troy (Border removed as requested)
             const mole = document.createElement('div');
             mole.classList.add('w-20', 'h-20', 'sm:w-24', 'sm:h-24', 'absolute', 'bottom-0', 'transform', 'translate-y-full', 'transition-transform', 'duration-150', 'flex', 'items-center', 'justify-center', 'z-20');
             
             const troyFace = document.createElement('div');
             troyFace.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'rounded-full', 'shadow-2xl', 'bg-slate-800');
             
-            // Loads troy.png directly from your GitHub repository folder without border
+            // Loads troy.png directly from your GitHub repository folder
             troyFace.innerHTML = `<img src="troy.png" class="w-full h-full object-cover rounded-full" alt="Troy" onerror="this.onerror=null; this.src='https://placehold.co/100x100/1e293b/facc15?text=Troy';" />`;
             
             mole.appendChild(troyFace);
 
-            // Whack event listener (supports both mouse clicks and mobile touch taps)
+            // Whack event listener with ouch audio effect
             const handleWhack = (e) => {
                 e.preventDefault();
                 if (!isPlaying || currentMoleHole !== i) return;
@@ -146,9 +133,10 @@
                 scoreDisplay.textContent = score;
                 
                 // Play ouch sound effect
+                const ouchAudio = document.getElementById('ouchAudio');
                 if (ouchAudio) {
                     ouchAudio.currentTime = 0;
-                    ouchAudio.play().catch(err => console.log("Audio play blocked or missing:", err));
+                    ouchAudio.play().catch(err => console.log("Audio play prevented:", err));
                 }
                 
                 // Hide mole immediately on successful whack
@@ -179,7 +167,6 @@
         function popMole() {
             if (!isPlaying) return;
 
-            // Hide previous mole if active
             if (currentMoleHole !== null) {
                 holes[currentMoleHole].mole.classList.remove('mole-up');
                 holes[currentMoleHole].mole.style.transform = 'translateY(100%)';
@@ -204,10 +191,9 @@
         }
 
         function startGame() {
-            // Reset state
             score = 0;
             timeLeft = 30;
-            popDuration = 2200;
+            popDuration = 1900;
             scoreDisplay.textContent = score;
             timerDisplay.textContent = timeLeft;
             isPlaying = true;
@@ -216,7 +202,7 @@
             startBtn.disabled = true;
             document.body.classList.add('hammer-active');
 
-            // Timer countdown
+            // Countdown timer
             gameInterval = setInterval(() => {
                 timeLeft--;
                 timerDisplay.textContent = timeLeft;
@@ -225,11 +211,11 @@
                 }
             }, 1000);
 
-            // Mole pop loop with more breathing room between pops
+            // Pop loop
             const runMoles = () => {
                 if (!isPlaying) return;
                 popMole();
-                const nextTime = Math.random() * 800 + popDuration;
+                const nextTime = Math.random() * 500 + 1200;
                 moleInterval = setTimeout(runMoles, nextTime);
             };
             runMoles();
@@ -240,7 +226,6 @@
             clearInterval(gameInterval);
             clearTimeout(moleInterval);
 
-            // Hide any active mole
             if (currentMoleHole !== null) {
                 holes[currentMoleHole].mole.classList.remove('mole-up');
                 holes[currentMoleHole].mole.style.transform = 'translateY(100%)';
@@ -251,7 +236,6 @@
             startBtn.disabled = false;
             document.body.classList.remove('hammer-active');
 
-            // Check high score
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('whac_troy_highScore', highScore);
@@ -265,7 +249,6 @@
             modalOverlay.classList.remove('hidden');
         }
 
-        // Event Listeners
         startBtn.addEventListener('click', startGame);
         modalBtn.addEventListener('click', () => {
             modalOverlay.classList.add('hidden');
