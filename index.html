@@ -10,7 +10,11 @@
             font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
         }
         body {
-            background: radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%);
+            background-image: url('bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #09090b;
             min-height: 100vh;
         }
         .cabinet-shadow {
@@ -31,7 +35,7 @@
 <body class="text-white flex flex-col items-center justify-center p-4">
 
     <!-- Main Arcade Cabinet Container -->
-    <div class="w-full max-w-xl bg-slate-900 border-4 border-indigo-500 rounded-3xl cabinet-shadow p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
+    <div class="w-full max-w-xl bg-slate-900/90 backdrop-blur-md border-4 border-indigo-500 rounded-3xl cabinet-shadow p-6 sm:p-8 flex flex-col items-center relative overflow-hidden">
         
         <!-- Top Arcade Marquee -->
         <div class="text-center mb-4 w-full border-b-2 border-indigo-500/40 pb-4">
@@ -102,6 +106,13 @@
         let moleInterval = null;
         let isPlaying = false;
         let lastHole = null;
+        let currentMoleHole = null;
+        let popDuration = 1900;
+
+        // Load High Score from Local Storage
+        let highScore = localStorage.getItem('whac_troy_highScore') || 0;
+        highScoreDisplay.textContent = highScore;
+
         // Initialize 9 holes
         const holes = [];
         for (let i = 0; i < 9; i++) {
@@ -112,7 +123,7 @@
             const pit = document.createElement('div');
             pit.classList.add('absolute', 'bottom-0', 'w-full', 'h-1/2', 'bg-amber-950/90', 'rounded-t-full', 'border-t-4', 'border-amber-900', 'flex', 'items-center', 'justify-center', 'z-10');
             
-            // Mole Element representing Troy (Border removed as requested)
+            // Mole Element representing Troy (Border removed)
             const mole = document.createElement('div');
             mole.classList.add('w-20', 'h-20', 'sm:w-24', 'sm:h-24', 'absolute', 'bottom-0', 'transform', 'translate-y-full', 'transition-transform', 'duration-150', 'flex', 'items-center', 'justify-center', 'z-20');
             
