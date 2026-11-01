@@ -102,7 +102,7 @@
         let isPlaying = false;
         let lastHole = null;
         let currentMoleHole = null;
-        let popDuration = 1000; // Starting time mole stays up (ms)
+        let popDuration = 1800; // Increased starting time mole stays up (ms)
 
         // Load High Score from Local Storage
         let highScore = localStorage.getItem('whac_troy_highScore') || 0;
@@ -125,10 +125,8 @@
             const troyFace = document.createElement('div');
             troyFace.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'rounded-full', 'border-4', 'border-yellow-400', 'shadow-2xl', 'bg-slate-800');
             
-            // Embed Troy's actual photo using a high fidelity base64 data URI
-            const troyImageSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><image href='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=' width='100' height='100' preserveAspectRatio='xMidYMid slice'/></svg>`;
-            
-            troyFace.innerHTML = `<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><image href='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=' width='100' height='100' preserveAspectRatio='xMidYMid slice'/></svg>" class="w-full h-full object-cover rounded-full" alt="Troy" />`;
+            // Load Troy's image directly from the same GitHub repository folder as index.html
+            troyFace.innerHTML = `<img src="troy.png" class="w-full h-full object-cover rounded-full" alt="Troy" onerror="this.onerror=null; this.src='https://placehold.co/100x100/1e293b/facc15?text=Troy';" />`;
             
             mole.appendChild(troyFace);
 
@@ -145,9 +143,9 @@
                 mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
                 
-                // Speed up difficulty slightly as score increases
-                if (popDuration > 400) {
-                    popDuration = Math.max(400, 1000 - (score * 25));
+                // Speed up difficulty slightly as score increases (keeping min duration higher so it's not too fast)
+                if (popDuration > 800) {
+                    popDuration = Math.max(800, 1800 - (score * 30));
                 }
             });
 
@@ -199,7 +197,7 @@
             // Reset state
             score = 0;
             timeLeft = 30;
-            popDuration = 1000;
+            popDuration = 1800;
             scoreDisplay.textContent = score;
             timerDisplay.textContent = timeLeft;
             isPlaying = true;
@@ -217,12 +215,12 @@
                 }
             }, 1000);
 
-            // Mole pop loop
+            // Mole pop loop with more breathing room between pops
             const runMoles = () => {
                 if (!isPlaying) return;
                 popMole();
-                // Random interval between pops
-                const nextTime = Math.random() * 400 + popDuration;
+                // Random interval between pops (giving more time to react)
+                const nextTime = Math.random() * 600 + popDuration;
                 moleInterval = setTimeout(runMoles, nextTime);
             };
             runMoles();
