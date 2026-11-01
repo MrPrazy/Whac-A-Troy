@@ -212,6 +212,7 @@
 
             // Start background music when game starts
             if (bgMusic) {
+                bgMusic.currentTime = 0;
                 bgMusic.play().catch(err => console.log("Background music play prevented:", err));
             }
 
