@@ -60,8 +60,9 @@
             </div>
         </div>
 
-        <!-- Audio Element for Ouch Sound -->
+        <!-- Audio Elements -->
         <audio id="ouchAudio" src="ouch.mp3" preload="auto"></audio>
+        <audio id="bgMusic" src="bg.mp3" loop preload="auto"></audio>
 
         <!-- Game Grid (3x3 Holes) with bg2.png background -->
         <div id="gameGrid" class="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-md aspect-square p-4 rounded-2xl border-4 border-slate-800 shadow-2xl relative bg-cover bg-center" style="background-image: url('bg2.png'); background-color: #020617;">
@@ -99,6 +100,7 @@
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
         const modalBtn = document.getElementById('modalBtn');
+        const bgMusic = document.getElementById('bgMusic');
 
         let score = 0;
         let timeLeft = 30;
@@ -119,11 +121,7 @@
             const hole = document.createElement('div');
             hole.classList.add('relative', 'bg-slate-900/60', 'backdrop-blur-xs', 'rounded-2xl', 'overflow-hidden', 'border-4', 'border-slate-800/80', 'flex', 'items-end', 'justify-center', 'cursor-pointer', 'shadow-inner');
             
-            // Inner dirt pit
-            const pit = document.createElement('div');
-            pit.classList.add('absolute', 'bottom-0', 'w-full', 'h-1/2', 'bg-amber-950/90', 'rounded-t-full', 'border-t-4', 'border-amber-900', 'flex', 'items-center', 'justify-center', 'z-10');
-            
-            // Mole Element representing Troy (Border removed)
+            // Mole Element representing Troy
             const mole = document.createElement('div');
             mole.classList.add('w-20', 'h-20', 'sm:w-24', 'sm:h-24', 'absolute', 'bottom-0', 'transform', 'translate-y-full', 'transition-transform', 'duration-150', 'flex', 'items-center', 'justify-center', 'z-20');
             
@@ -159,7 +157,6 @@
             mole.addEventListener('click', handleWhack);
             mole.addEventListener('touchstart', handleWhack);
 
-            hole.appendChild(pit);
             hole.appendChild(mole);
             grid.appendChild(hole);
 
@@ -212,6 +209,11 @@
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             startBtn.disabled = true;
             document.body.classList.add('hammer-active');
+
+            // Start background music when game starts
+            if (bgMusic) {
+                bgMusic.play().catch(err => console.log("Background music play prevented:", err));
+            }
 
             // Countdown timer
             gameInterval = setInterval(() => {
