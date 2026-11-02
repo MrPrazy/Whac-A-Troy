@@ -334,4 +334,51 @@
                     items.sort((a, b) => b.score - a.score);
 
                     items.forEach((entry) => {
-                        html += `<div class="
+                        html += `<div class="flex justify-between py-1 border-b border-slate-900 font-bold">
+                            <span>#${rank} ${escapeHtml(entry.name)}</span>
+                            <span class="text-green-400">${entry.score} pts</span>
+                        </div>`;
+                        rank++;
+                    });
+                    leaderboardList.innerHTML = html;
+                } else {
+                    leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet. Be the first!</div>`;
+                }
+            } catch (err) {
+                leaderboardList.innerHTML = `<div class="text-red-400 text-center py-2">Failed to load leaderboard</div>`;
+            }
+        }
+
+        // Submit Score to Firebase
+        submitScoreBtn.addEventListener('click', async () => {
+            const name = playerNameInput.value.trim() || "Anonymous Troy Hater";
+            if (!db) {
+                alert("Database not connected!");
+                return;
+            }
+            submitScoreBtn.disabled = true;
+            submitScoreBtn.textContent = "SAVING...";
+            try {
+                const scoresRef = ref(db, 'leaderboard');
+                await push(scoresRef, { name: name, score: score });
+                submitSection.classList.add('hidden');
+                fetchLeaderboard();
+            } catch (err) {
+                alert("Error saving score. Try again!");
+                submitScoreBtn.disabled = false;
+                submitScoreBtn.textContent = "SUBMIT TO GLOBAL LEADERBOARD";
+            }
+        });
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        startBtn.addEventListener('click', startGame);
+        modalBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+            startGame();
+        });
+    </script>
+</body>
+</html>
