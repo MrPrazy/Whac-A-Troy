@@ -153,7 +153,7 @@
         let currentMoleHole = null;
         let popTimer = null;
         let moleTimeout = null;
-        let currentPopDuration = 5000; // Starts at a full 5 seconds!
+        let currentPopDuration = 5000; // Starts at 5 seconds!
 
         // Load High Score from Local Storage
         let highScore = localStorage.getItem('whac_troy_arcade_highScore') || 0;
@@ -191,15 +191,18 @@
                 
                 clearTimeout(popTimer);
                 mole.classList.remove('mole-up');
+                mole.style.transform = 'translateY(100 thổ%)';
                 mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
 
-                // Decrease stay time by 300ms every 5 whacs (capping at a fast 700ms minimum)
+                // Decrease stay time by 300ms every 5 whacs (capping at a fast 800ms minimum)
                 const tier = Math.floor(score / 5);
-                currentPopDuration = Math.max(700, 5000 - (tier * 300));
+                currentPopDuration = Math.max(800, 5000 - (tier * 300));
 
                 clearTimeout(moleTimeout);
-                nextMoleLoop();
+                // Pause before the next mole pops up based on current tier speed
+                const nextDelay = Math.max(800, 2000 - (tier * 150));
+                moleTimeout = setTimeout(nextMoleLoop, nextDelay);
             };
 
             mole.addEventListener('click', handleWhack);
@@ -220,15 +223,6 @@
         function popMole() {
             if (!isPlaying) return;
 
-            // If a mole was left up unwhacked, lose a life
-            if (currentMoleHole !== null) {
-                holes[currentMoleHole].mole.classList.remove('mole-up');
-                holes[currentMoleHole].mole.style.transform = 'translateY(100%)';
-                currentMoleHole = null;
-                loseLife();
-                if (!isPlaying) return;
-            }
-
             const chosen = randomHole();
             const chosenIndex = holes.indexOf(chosen);
             currentMoleHole = chosenIndex;
@@ -236,12 +230,16 @@
             chosen.mole.style.transform = 'translateY(0%)';
             chosen.mole.classList.add('mole-up');
 
+            // Time mole stays up before hiding and costing a life if missed
             popTimer = setTimeout(() => {
                 if (isPlaying && currentMoleHole === chosenIndex) {
                     chosen.mole.classList.remove('mole-up');
                     chosen.mole.style.transform = 'translateY(100%)';
                     currentMoleHole = null;
                     loseLife();
+                    if (isPlaying) {
+                        nextMoleLoop();
+                    }
                 }
             }, currentPopDuration);
         }
@@ -265,14 +263,12 @@
         function nextMoleLoop() {
             if (!isPlaying) return;
             popMole();
-            const nextDelay = Math.random() * 400 + (currentPopDuration * 0.4);
-            moleTimeout = setTimeout(nextMoleLoop, nextDelay);
         }
 
         function startGame() {
             score = 0;
             lives = 3;
-            currentPopDuration = 5000; // Starts at a slow 5 seconds
+            currentPopDuration = 5000; // Starts at a full 5 seconds
             scoreDisplay.textContent = score;
             updateLivesDisplay();
             isPlaying = true;
@@ -365,26 +361,4 @@
             submitScoreBtn.disabled = true;
             submitScoreBtn.textContent = "SAVING...";
             try {
-                const scoresRef = ref(db, 'leaderboard');
-                await push(scoresRef, { name: name, score: score });
-                submitSection.classList.add('hidden');
-                fetchLeaderboard();
-            } catch (err) {
-                alert("Error saving score. Try again!");
-                submitScoreBtn.disabled = false;
-                submitScoreBtn.textContent = "SUBMIT TO GLOBAL LEADERBOARD";
-            }
-        });
-
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
-
-        startBtn.addEventListener('click', startGame);
-        modalBtn.addEventListener('click', () => {
-            modalOverlay.classList.add('hidden');
-            startGame();
-        });
-    </script>
-</body>
-</html>
+                const scoresRef = ref(db, 'leader
