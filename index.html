@@ -153,7 +153,7 @@
         let currentMoleHole = null;
         let popTimer = null;
         let moleTimeout = null;
-        let currentPopDuration = 1600;
+        let currentPopDuration = 2500; // Starts at a generous 2.5 seconds for low scores
 
         // Load High Score from Local Storage
         let highScore = localStorage.getItem('whac_troy_arcade_highScore') || 0;
@@ -194,8 +194,8 @@
                 mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
 
-                // Speed up difficulty dynamically as score increases
-                currentPopDuration = Math.max(600, 1600 - (score * 25));
+                // Gradually speed up difficulty smoothly as score increases (caps at a fast 600ms minimum)
+                currentPopDuration = Math.max(600, 2500 - (score * 50));
 
                 clearTimeout(moleTimeout);
                 nextMoleLoop();
@@ -264,14 +264,15 @@
         function nextMoleLoop() {
             if (!isPlaying) return;
             popMole();
-            const nextDelay = Math.random() * 400 + (currentPopDuration * 0.6);
+            // Delay before the next mole appears also tightens slightly as the game speeds up
+            const nextDelay = Math.random() * 500 + (currentPopDuration * 0.5);
             moleTimeout = setTimeout(nextMoleLoop, nextDelay);
         }
 
         function startGame() {
             score = 0;
             lives = 3;
-            currentPopDuration = 1600;
+            currentPopDuration = 2500; // Starts slow (2.5 seconds per mole)
             scoreDisplay.textContent = score;
             updateLivesDisplay();
             isPlaying = true;
