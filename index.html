@@ -170,4 +170,215 @@
             
             const troyFace = document.createElement('div');
             troyFace.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center', 'overflow-hidden', 'rounded-full', 'shadow-2xl', 'bg-slate-800');
-            troyFace.innerHTML = `<img src="troy.png" class="w-full h-full object-cover rounded-full" alt="Troy" onerror="this.onerror=null; this.src='
+            troyFace.innerHTML = `<img src="troy.png" class="w-full h-full object-cover rounded-full" alt="Troy" onerror="this.onerror=null; this.src='https://placehold.co/100x100/1e293b/facc15?text=Troy';" />`;
+            
+            mole.appendChild(troyFace);
+
+            // Whack event listener
+            const handleWhack = (e) => {
+                e.preventDefault();
+                if (!isPlaying || currentMoleHole !== i) return;
+                
+                score++;
+                scoreDisplay.textContent = score;
+                
+                // Play ouch audio effect
+                const ouchAudio = document.getElementById('ouchAudio');
+                if (ouchAudio) {
+                    ouchAudio.currentTime = 0;
+                    ouchAudio.play().catch(err => console.log("Audio play prevented:", err));
+                }
+                
+                clearTimeout(popTimer);
+                mole.classList.remove('mole-up');
+                mole.style.transform = 'translateY(100%)';
+                currentMoleHole = null;
+
+                // Decrease stay time by 300ms every 5 whacs (capping at a fast 800ms minimum)
+                const tier = Math.floor(score / 5);
+                currentPopDuration = Math.max(800, 5000 - (tier * 300));
+
+                clearTimeout(moleTimeout);
+                const nextDelay = Math.max(800, 2000 - (tier * 150));
+                moleTimeout = setTimeout(nextMoleLoop, nextDelay);
+            };
+
+            mole.addEventListener('click', handleWhack);
+            mole.addEventListener('touchstart', handleWhack);
+
+            hole.appendChild(mole);
+            grid.appendChild(hole);
+            holes.push({ hole, mole });
+        }
+
+        function randomHole() {
+            const index = Math.floor(Math.random() * holes.length);
+            if (index === lastHole) return randomHole();
+            lastHole = index;
+            return holes[index];
+        }
+
+        function popMole() {
+            if (!isPlaying) return;
+
+            const chosen = randomHole();
+            const chosenIndex = holes.indexOf(chosen);
+            currentMoleHole = chosenIndex;
+
+            chosen.mole.style.transform = 'translateY(0%)';
+            chosen.mole.classList.add('mole-up');
+
+            // Time mole stays up before hiding and costing a life if missed
+            popTimer = setTimeout(() => {
+                if (isPlaying && currentMoleHole === chosenIndex) {
+                    chosen.mole.classList.remove('mole-up');
+                    chosen.mole.style.transform = 'translateY(100%)';
+                    currentMoleHole = null;
+                    loseLife();
+                    if (isPlaying) {
+                        nextMoleLoop();
+                    }
+                }
+            }, currentPopDuration);
+        }
+
+        function loseLife() {
+            if (!isPlaying) return;
+            lives--;
+            updateLivesDisplay();
+            
+            if (lives <= 0) {
+                endGame();
+            }
+        }
+
+        function updateLivesDisplay() {
+            let hearts = "";
+            for (let i = 0; i < lives; i++) hearts += "❤️";
+            livesDisplay.textContent = hearts || "❌";
+        }
+
+        function nextMoleLoop() {
+            if (!isPlaying) return;
+            popMole();
+        }
+
+        function startGame() {
+            score = 0;
+            lives = 3;
+            currentPopDuration = 5000; // Starts at a full 5 seconds
+            scoreDisplay.textContent = score;
+            updateLivesDisplay();
+            isPlaying = true;
+            
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            startBtn.disabled = true;
+            document.body.classList.add('hammer-active');
+            submitSection.classList.remove('hidden');
+
+            // Play background music
+            if (bgMusic) {
+                bgMusic.currentTime = 0;
+                bgMusic.play().catch(err => console.log("Background music play prevented:", err));
+            }
+
+            nextMoleLoop();
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearTimeout(popTimer);
+            clearTimeout(moleTimeout);
+
+            if (currentMoleHole !== null) {
+                holes[currentMoleHole].mole.classList.remove('mole-up');
+                holes[currentMoleHole].mole.style.transform = 'translateY(100%)';
+                currentMoleHole = null;
+            }
+
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            startBtn.disabled = false;
+            document.body.classList.remove('hammer-active');
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('whac_troy_arcade_highScore', highScore);
+                highScoreDisplay.textContent = highScore;
+                modalTitle.textContent = "🏆 NEW HIGH SCORE! 🏆";
+            } else {
+                modalTitle.textContent = "GAME OVER";
+            }
+
+            finalScoreText.textContent = `You whacked Troy ${score} times!`;
+            modalOverlay.classList.remove('hidden');
+            fetchLeaderboard();
+        }
+
+        // Fetch Global Leaderboard from Firebase
+        async function fetchLeaderboard() {
+            leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">Loading scores...</div>`;
+            if (!db) {
+                leaderboardList.innerHTML = `<div class="text-yellow-400 text-center py-2">Offline mode</div>`;
+                return;
+            }
+            try {
+                const scoresRef = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+                const snapshot = await get(scoresRef);
+                if (snapshot.exists()) {
+                    let html = "";
+                    let rank = 1;
+                    const items = [];
+                    snapshot.forEach((childSnapshot) => {
+                        items.push(childSnapshot.val());
+                    });
+                    items.sort((a, b) => b.score - a.score);
+
+                    items.forEach((entry) => {
+                        html += `<div class="flex justify-between py-1 border-b border-slate-900 font-bold">
+                            <span>#${rank} ${escapeHtml(entry.name)}</span>
+                            <span class="text-green-400">${entry.score} pts</span>
+                        </div>`;
+                        rank++;
+                    });
+                    leaderboardList.innerHTML = html;
+                } else {
+                    leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet. Be the first!</div>`;
+                }
+            } catch (err) {
+                leaderboardList.innerHTML = `<div class="text-red-400 text-center py-2">Failed to load leaderboard</div>`;
+            }
+        }
+
+        // Submit Score to Firebase
+        submitScoreBtn.addEventListener('click', async () => {
+            const name = playerNameInput.value.trim() || "Anonymous Troy Hater";
+            if (!db) {
+                alert("Database not connected!");
+                return;
+            }
+            submitScoreBtn.disabled = true;
+            submitScoreBtn.textContent = "SAVING...";
+            try {
+                const scoresRef = ref(db, 'leaderboard');
+                await push(scoresRef, { name: name, score: score });
+                submitSection.classList.add('hidden');
+                fetchLeaderboard();
+            } catch (err) {
+                alert("Error saving score. Try again!");
+                submitScoreBtn.disabled = false;
+                submitScoreBtn.textContent = "SUBMIT TO GLOBAL LEADERBOARD";
+            }
+        });
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        startBtn.addEventListener('click', startGame);
+        modalBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+            startGame();
+        });
+    </script>
+</body>
+</html>
