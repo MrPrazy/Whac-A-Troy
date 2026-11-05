@@ -77,6 +77,19 @@
             </button>
         </div>
 
+        <!-- Difficulty Selection Modal Overlay -->
+        <div id="difficultyModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 z-50 text-center">
+            <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-sm w-full shadow-2xl flex flex-col gap-4">
+                <h3 class="text-xl sm:text-2xl text-yellow-400 font-bold">CHOOSE DIFFICULTY</h3>
+                <button id="normalDiffBtn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-xl text-base transition-all shadow-md cursor-pointer border-b-4 border-blue-800">
+                    NORMAL MODE
+                </button>
+                <button id="hardDiffBtn" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-extrabold rounded-xl text-base transition-all shadow-md cursor-pointer border-b-4 border-red-800">
+                    HARD MODE 🔥
+                </button>
+            </div>
+        </div>
+
         <!-- Game Over / Score Screen Modal Overlay -->
         <div id="modalOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 z-50 text-center overflow-y-auto">
             <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-md w-full shadow-2xl my-auto">
@@ -93,7 +106,7 @@
 
                 <!-- Global Leaderboard Table -->
                 <div class="mb-5">
-                    <h4 class="text-sm text-yellow-400 uppercase tracking-wider mb-2 font-bold">🌍 Global Top 10</h4>
+                    <h4 id="leaderboardTitle" class="text-sm text-yellow-400 uppercase tracking-wider mb-2 font-bold">🌍 Global Top 10 (Normal)</h4>
                     <div id="leaderboardList" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-left text-xs sm:text-sm max-h-36 overflow-y-auto space-y-1">
                         <div class="text-slate-400 text-center py-2">Loading leaderboard...</div>
                     </div>
@@ -157,6 +170,9 @@
         const livesDisplay = document.getElementById('livesDisplay');
         const highScoreDisplay = document.getElementById('highScoreDisplay');
         const startBtn = document.getElementById('startBtn');
+        const difficultyModal = document.getElementById('difficultyModal');
+        const normalDiffBtn = document.getElementById('normalDiffBtn');
+        const hardDiffBtn = document.getElementById('hardDiffBtn');
         const modalOverlay = document.getElementById('modalOverlay');
         const modalTitle = document.getElementById('modalTitle');
         const finalScoreText = document.getElementById('finalScoreText');
@@ -164,6 +180,7 @@
         const playerNameInput = document.getElementById('playerNameInput');
         const submitScoreBtn = document.getElementById('submitScoreBtn');
         const leaderboardList = document.getElementById('leaderboardList');
+        const leaderboardTitle = document.getElementById('leaderboardTitle');
         const submitSection = document.getElementById('submitSection');
         const bgMusic = document.getElementById('bgMusic');
         const gameOverAudio = document.getElementById('gameOverAudio');
@@ -175,11 +192,15 @@
         let currentMoleHole = null;
         let popTimer = null;
         let moleTimeout = null;
-        let currentPopDuration = 4000; // Starts at 4 seconds
+        let currentDifficulty = 'normal'; // default
+        let currentPopDuration = 5000;
 
-        // Load High Score from Local Storage
-        let highScore = localStorage.getItem('whac_troy_arcade_highScore') || 0;
-        highScoreDisplay.textContent = highScore;
+        // Load High Score from Local Storage (split by difficulty)
+        function updateHighScoreDisplay() {
+            const savedHighScore = localStorage.getItem(`whac_troy_highScore_${currentDifficulty}`) || 0;
+            highScoreDisplay.textContent = savedHighScore;
+        }
+        updateHighScoreDisplay();
 
         // Initialize 9 holes
         const holes = [];
@@ -204,7 +225,6 @@
                 score++;
                 scoreDisplay.textContent = score;
                 
-                // Play ouch audio effect
                 const ouchAudio = document.getElementById('ouchAudio');
                 if (ouchAudio) {
                     ouchAudio.currentTime = 0;
@@ -216,12 +236,17 @@
                 mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
 
-                // Harder scaling: shrinks faster every 5 whacs down to a blistering 350ms minimum floor
                 const tier = Math.floor(score / 5);
-                currentPopDuration = Math.max(350, 4000 - (tier * 350));
+                if (currentDifficulty === 'hard') {
+                    currentPopDuration = Math.max(350, 4000 - (tier * 350));
+                } else {
+                    currentPopDuration = Math.max(800, 5000 - (tier * 300));
+                }
 
                 clearTimeout(moleTimeout);
-                const nextDelay = Math.max(250, 1400 - (tier * 100));
+                const nextDelay = currentDifficulty === 'hard' 
+                    ? Math.max(250, 1400 - (tier * 100))
+                    : Math.max(600, 1800 - (tier * 120));
                 moleTimeout = setTimeout(nextMoleLoop, nextDelay);
             };
 
@@ -284,11 +309,17 @@
             popMole();
         }
 
-        function startGame() {
+        startBtn.addEventListener('click', () => {
+            difficultyModal.classList.remove('hidden');
+        });
+
+        function startGame(difficulty) {
             initAudioBoost();
+            currentDifficulty = difficulty;
+            updateHighScoreDisplay();
             score = 0;
             lives = 3;
-            currentPopDuration = 4000;
+            currentPopDuration = (currentDifficulty === 'hard') ? 4000 : 5000;
             scoreDisplay.textContent = score;
             updateLivesDisplay();
             isPlaying = true;
@@ -305,6 +336,16 @@
 
             nextMoleLoop();
         }
+
+        normalDiffBtn.addEventListener('click', () => {
+            difficultyModal.classList.add('hidden');
+            startGame('normal');
+        });
+
+        hardDiffBtn.addEventListener('click', () => {
+            difficultyModal.classList.add('hidden');
+            startGame('hard');
+        });
 
         function endGame() {
             isPlaying = false;
@@ -330,16 +371,17 @@
             startBtn.disabled = false;
             document.body.classList.remove('hammer-active');
 
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('whac_troy_arcade_highScore', highScore);
-                highScoreDisplay.textContent = highScore;
+            const currentHighScore = localStorage.getItem(`whac_troy_highScore_${currentDifficulty}`) || 0;
+            if (score > currentHighScore) {
+                localStorage.setItem(`whac_troy_highScore_${currentDifficulty}`, score);
+                highScoreDisplay.textContent = score;
                 modalTitle.textContent = "🏆 NEW HIGH SCORE! 🏆";
             } else {
                 modalTitle.textContent = "GAME OVER";
             }
 
-            finalScoreText.textContent = `You whacked Troy ${score} times!`;
+            finalScoreText.textContent = `You whacked Troy ${score} times on ${currentDifficulty.toUpperCase()} mode!`;
+            leaderboardTitle.textContent = `🌍 Global Top 10 (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`;
             modalOverlay.classList.remove('hidden');
             fetchLeaderboard();
         }
@@ -351,7 +393,8 @@
                 return;
             }
             try {
-                const scoresRef = query(ref(db, 'leaderboard'), orderByChild('score'), limitToLast(10));
+                // Fetches from /leaderboard/normal or /leaderboard/hard separately
+                const scoresRef = query(ref(db, `leaderboard/${currentDifficulty}`), orderByChild('score'), limitToLast(10));
                 const snapshot = await get(scoresRef);
                 if (snapshot.exists()) {
                     let html = "";
@@ -371,7 +414,7 @@
                     });
                     leaderboardList.innerHTML = html;
                 } else {
-                    leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet. Be the first!</div>`;
+                    leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet on ${currentDifficulty} mode. Be the first!</div>`;
                 }
             } catch (err) {
                 leaderboardList.innerHTML = `<div class="text-red-400 text-center py-2">Failed to load leaderboard</div>`;
@@ -387,7 +430,8 @@
             submitScoreBtn.disabled = true;
             submitScoreBtn.textContent = "SAVING...";
             try {
-                const scoresRef = ref(db, 'leaderboard');
+                // Pushes to /leaderboard/normal or /leaderboard/hard separately
+                const scoresRef = ref(db, `leaderboard/${currentDifficulty}`);
                 await push(scoresRef, { name: name, score: score });
                 submitSection.classList.add('hidden');
                 fetchLeaderboard();
@@ -402,10 +446,9 @@
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
 
-        startBtn.addEventListener('click', startGame);
         modalBtn.addEventListener('click', () => {
             modalOverlay.classList.add('hidden');
-            startGame();
+            difficultyModal.classList.remove('hidden');
         });
     </script>
 </body>
