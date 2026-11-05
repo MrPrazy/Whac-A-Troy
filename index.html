@@ -70,17 +70,28 @@
             <!-- 9 Holes generated via JS -->
         </div>
 
-        <!-- Controls & Buttons -->
-        <div class="mt-6 w-full max-w-md flex flex-col gap-3">
-            <button id="startBtn" class="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-extrabold text-base sm:text-lg rounded-xl shadow-lg transform active:scale-95 transition-all duration-150 border-b-4 border-amber-800 cursor-pointer">
-                START GAME
-            </button>
-            <button id="viewLeaderboardBtn" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md transition-all border-b-4 border-purple-800 cursor-pointer">
-                🌍 VIEW LEADERBOARDS
-            </button>
+        <!-- Controls & Bottom Buttons -->
+        <div id="gameControlsContainer" class="mt-6 w-full max-w-md flex flex-col items-center">
+            <!-- Game is controlled via modals -->
         </div>
 
-        <!-- Difficulty Selection Modal Overlay -->
+        <!-- HOME SCREEN MODAL -->
+        <div id="homeModal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 z-50 text-center">
+            <div class="bg-slate-900 border-2 border-indigo-500 p-8 rounded-3xl max-w-md w-full shadow-2xl flex flex-col gap-5 items-center">
+                <h2 class="text-2xl sm:text-3xl text-yellow-400 font-extrabold tracking-wide">WELCOME!</h2>
+                <p class="text-slate-300 text-sm">Whac Troy before he escapes back down his hole!</p>
+                <div class="w-full flex flex-col gap-3 mt-2">
+                    <button id="homePlayBtn" class="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-extrabold text-base sm:text-lg rounded-xl shadow-lg transform active:scale-95 transition-all duration-150 border-b-4 border-amber-800 cursor-pointer">
+                        PLAY GAME
+                    </button>
+                    <button id="homeLeaderboardBtn" class="w-full py-3.5 bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-md transition-all border-b-4 border-purple-800 cursor-pointer">
+                        VIEW LEADERBOARDS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIFFICULTY SELECTION MODAL -->
         <div id="difficultyModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 z-50 text-center">
             <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-sm w-full shadow-2xl flex flex-col gap-4">
                 <h3 class="text-xl sm:text-2xl text-yellow-400 font-bold">CHOOSE DIFFICULTY</h3>
@@ -90,36 +101,48 @@
                 <button id="hardDiffBtn" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-extrabold rounded-xl text-base transition-all shadow-md cursor-pointer border-b-4 border-red-800">
                     HARD MODE 🔥
                 </button>
-            </div>
-        </div>
-
-        <!-- Persistent Leaderboard Menu Modal -->
-        <div id="leaderboardModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 z-50 text-center">
-            <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-md w-full shadow-2xl flex flex-col gap-4 my-auto">
-                <h3 class="text-xl sm:text-2xl text-yellow-400 font-bold">GLOBAL LEADERBOARDS</h3>
-                
-                <!-- Toggle Buttons (Normal vs Hard) -->
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="lbNormalTab" class="py-2 bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-blue-800">
-                        Normal Mode
-                    </button>
-                    <button id="lbHardTab" class="py-2 bg-slate-800 text-slate-400 font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-slate-950">
-                        Hard Mode
-                    </button>
-                </div>
-
-                <!-- Leaderboard Table Container -->
-                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-left text-xs sm:text-sm max-h-56 overflow-y-auto space-y-1" id="persistentLeaderboardList">
-                    <div class="text-slate-400 text-center py-4">Loading scores...</div>
-                </div>
-
-                <button id="closeLeaderboardModalBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer">
-                    CLOSE
+                <button id="diffBackHomeBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer border-b-2 border-slate-950 mt-1">
+                    ← Back to Home
                 </button>
             </div>
         </div>
 
-        <!-- Game Over / Score Screen Modal Overlay -->
+        <!-- SIDE-BY-SIDE LEADERBOARDS MODAL (Taller & Wider) -->
+        <div id="leaderboardModal" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-4 z-50 text-center">
+            <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-2xl w-full shadow-2xl flex flex-col gap-4 my-auto">
+                <h3 class="text-xl sm:text-2xl text-yellow-400 font-bold">🌍 GLOBAL LEADERBOARDS</h3>
+                
+                <!-- Side-by-Side Container -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                    <!-- Normal Column -->
+                    <div class="bg-slate-950 border border-blue-500/40 rounded-xl p-3 flex flex-col">
+                        <div class="flex justify-between text-xs text-blue-400 font-extrabold uppercase tracking-wider mb-2 px-1">
+                            <span>NORMAL MODE</span>
+                            <span>PTS</span>
+                        </div>
+                        <div id="lbNormalList" class="max-h-72 overflow-y-auto space-y-1 text-xs sm:text-sm">
+                            <div class="text-slate-500 text-center py-4">Loading...</div>
+                        </div>
+                    </div>
+                    <!-- Hard Column -->
+                    <div class="bg-slate-950 border border-red-500/40 rounded-xl p-3 flex flex-col">
+                        <div class="flex justify-between text-xs text-red-400 font-extrabold uppercase tracking-wider mb-2 px-1">
+                            <span>HARD MODE 🔥</span>
+                            <span>PTS</span>
+                        </div>
+                        <div id="lbHardList" class="max-h-72 overflow-y-auto space-y-1 text-xs sm:text-sm">
+                            <div class="text-slate-500 text-center py-4">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="closeLeaderboardModalBtn" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer border-b-2 border-slate-950">
+                    ← Back to Home
+                </button>
+            </div>
+        </div>
+
+        <!-- GAME OVER / SCORE SCREEN MODAL OVERLAY -->
         <div id="modalOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md hidden flex flex-col items-center justify-center p-6 z-50 text-center overflow-y-auto">
             <div class="bg-slate-900 border-2 border-indigo-500 p-6 rounded-2xl max-w-md w-full shadow-2xl my-auto">
                 <h3 id="modalTitle" class="text-xl sm:text-2xl text-yellow-400 mb-2 font-bold">GAME OVER</h3>
@@ -135,15 +158,23 @@
 
                 <!-- Global Leaderboard Table -->
                 <div class="mb-5">
-                    <h4 id="leaderboardTitle" class="text-sm text-yellow-400 uppercase tracking-wider mb-2 font-bold">🌍 Global Top 10 (Normal)</h4>
+                    <div class="flex justify-between text-xs text-yellow-400 uppercase tracking-wider mb-2 font-bold px-1">
+                        <span id="leaderboardTitle">🌍 GLOBAL TOP 10 (NORMAL)</span>
+                        <span>PTS</span>
+                    </div>
                     <div id="leaderboardList" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-left text-xs sm:text-sm max-h-36 overflow-y-auto space-y-1">
                         <div class="text-slate-400 text-center py-2">Loading leaderboard...</div>
                     </div>
                 </div>
 
-                <button id="modalBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer">
-                    PLAY AGAIN
-                </button>
+                <div class="flex flex-col gap-2">
+                    <button id="modalPlayAgainBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer">
+                        PLAY AGAIN
+                    </button>
+                    <button id="modalHomeBtn" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-sm transition-all shadow-md cursor-pointer border-b-2 border-slate-950">
+                        🏠 Back to Home
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -152,7 +183,7 @@
     <!-- Firebase SDK & Game Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, push, query, orderByChild, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6jWFraCDGLyYBlxMzWa3JcmMZSYpHghI",
@@ -173,7 +204,6 @@
             console.log("Database connection error:", e);
         }
 
-        // Web Audio API Boost setup for 5x volume on igyo.mp3
         let audioCtx = null;
         let gameOverGain = null;
         function initAudioBoost() {
@@ -193,30 +223,34 @@
             }
         }
 
-        // Game DOM Elements
         const grid = document.getElementById('gameGrid');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const livesDisplay = document.getElementById('livesDisplay');
         const highScoreDisplay = document.getElementById('highScoreDisplay');
-        const startBtn = document.getElementById('startBtn');
-        const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
+        
+        const homeModal = document.getElementById('homeModal');
+        const homePlayBtn = document.getElementById('homePlayBtn');
+        const homeLeaderboardBtn = document.getElementById('homeLeaderboardBtn');
         const difficultyModal = document.getElementById('difficultyModal');
         const normalDiffBtn = document.getElementById('normalDiffBtn');
         const hardDiffBtn = document.getElementById('hardDiffBtn');
+        const diffBackHomeBtn = document.getElementById('diffBackHomeBtn');
         const leaderboardModal = document.getElementById('leaderboardModal');
         const closeLeaderboardModalBtn = document.getElementById('closeLeaderboardModalBtn');
-        const lbNormalTab = document.getElementById('lbNormalTab');
-        const lbHardTab = document.getElementById('lbHardTab');
-        const persistentLeaderboardList = document.getElementById('persistentLeaderboardList');
+        const lbNormalList = document.getElementById('lbNormalList');
+        const lbHardList = document.getElementById('lbHardList');
+        
         const modalOverlay = document.getElementById('modalOverlay');
         const modalTitle = document.getElementById('modalTitle');
         const finalScoreText = document.getElementById('finalScoreText');
-        const modalBtn = document.getElementById('modalBtn');
+        const modalPlayAgainBtn = document.getElementById('modalPlayAgainBtn');
+        const modalHomeBtn = document.getElementById('modalHomeBtn');
         const playerNameInput = document.getElementById('playerNameInput');
         const submitScoreBtn = document.getElementById('submitScoreBtn');
         const leaderboardList = document.getElementById('leaderboardList');
         const leaderboardTitle = document.getElementById('leaderboardTitle');
         const submitSection = document.getElementById('submitSection');
+        
         const bgMusic = document.getElementById('bgMusic');
         const gameOverAudio = document.getElementById('gameOverAudio');
 
@@ -227,18 +261,15 @@
         let currentMoleHole = null;
         let popTimer = null;
         let moleTimeout = null;
-        let currentDifficulty = 'normal'; // default
+        let currentDifficulty = 'normal';
         let currentPopDuration = 5000;
-        let modalActiveDifficulty = 'normal'; // for the standalone leaderboard view
 
-        // Load High Score from Local Storage (split by difficulty)
         function updateHighScoreDisplay() {
             const savedHighScore = localStorage.getItem(`whac_troy_highScore_${currentDifficulty}`) || 0;
             highScoreDisplay.textContent = savedHighScore;
         }
         updateHighScoreDisplay();
 
-        // Initialize 9 holes
         const holes = [];
         for (let i = 0; i < 9; i++) {
             const hole = document.createElement('div');
@@ -253,7 +284,6 @@
             
             mole.appendChild(troyFace);
 
-            // Whack event listener
             const handleWhack = (e) => {
                 e.preventDefault();
                 if (!isPlaying || currentMoleHole !== i) return;
@@ -345,67 +375,46 @@
             popMole();
         }
 
-        startBtn.addEventListener('click', () => {
+        homePlayBtn.addEventListener('click', () => {
+            homeModal.classList.add('hidden');
             difficultyModal.classList.remove('hidden');
         });
 
-        // Standalone Leaderboard Menu Handlers
-        viewLeaderboardBtn.addEventListener('click', () => {
-            fetchPersistentLeaderboard(modalActiveDifficulty);
+        homeLeaderboardBtn.addEventListener('click', () => {
+            homeModal.classList.add('hidden');
+            fetchAllSideBySideLeaderboards();
             leaderboardModal.classList.remove('hidden');
+        });
+
+        diffBackHomeBtn.addEventListener('click', () => {
+            difficultyModal.classList.add('hidden');
+            homeModal.classList.remove('hidden');
         });
 
         closeLeaderboardModalBtn.addEventListener('click', () => {
             leaderboardModal.classList.add('hidden');
+            homeModal.classList.remove('hidden');
         });
 
-        lbNormalTab.addEventListener('click', () => {
-            modalActiveDifficulty = 'normal';
-            lbNormalTab.className = "py-2 bg-blue-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-blue-800";
-            lbHardTab.className = "py-2 bg-slate-800 text-slate-400 font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-slate-950";
-            fetchPersistentLeaderboard('normal');
+        normalDiffBtn.addEventListener('click', () => {
+            difficultyModal.classList.add('hidden');
+            startGame('normal');
         });
 
-        lbHardTab.addEventListener('click', () => {
-            modalActiveDifficulty = 'hard';
-            lbHardTab.className = "py-2 bg-red-600 text-white font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-red-800";
-            lbNormalTab.className = "py-2 bg-slate-800 text-slate-400 font-bold rounded-xl text-xs sm:text-sm shadow transition-all cursor-pointer border-b-2 border-slate-950";
-            fetchPersistentLeaderboard('hard');
+        hardDiffBtn.addEventListener('click', () => {
+            difficultyModal.classList.add('hidden');
+            startGame('hard');
         });
 
-        async function fetchPersistentLeaderboard(difficulty) {
-            persistentLeaderboardList.innerHTML = `<div class="text-slate-400 text-center py-4">Loading scores...</div>`;
-            if (!db) {
-                persistentLeaderboardList.innerHTML = `<div class="text-yellow-400 text-center py-4">Offline mode</div>`;
-                return;
-            }
-            try {
-                const scoresRef = query(ref(db, `leaderboard/${difficulty}`), orderByChild('score'), limitToLast(10));
-                const snapshot = await get(scoresRef);
-                if (snapshot.exists()) {
-                    let html = "";
-                    let rank = 1;
-                    const items = [];
-                    snapshot.forEach((childSnapshot) => {
-                        items.push(childSnapshot.val());
-                    });
-                    items.sort((a, b) => b.score - a.score);
+        modalPlayAgainBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+            difficultyModal.classList.remove('hidden');
+        });
 
-                    items.forEach((entry) => {
-                        html += `<div class="flex justify-between py-1 border-b border-slate-900 font-bold">
-                            <span>#${rank} ${escapeHtml(entry.name)}</span>
-                            <span class="text-green-400">${entry.score} pts</span>
-                        </div>`;
-                        rank++;
-                    });
-                    persistentLeaderboardList.innerHTML = html;
-                } else {
-                    persistentLeaderboardList.innerHTML = `<div class="text-slate-400 text-center py-4">No scores yet on ${difficulty} mode. Be the first!</div>`;
-                }
-            } catch (err) {
-                persistentLeaderboardList.innerHTML = `<div class="text-red-400 text-center py-4">Failed to load leaderboard</div>`;
-            }
-        }
+        modalHomeBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('hidden');
+            homeModal.classList.remove('hidden');
+        });
 
         function startGame(difficulty) {
             initAudioBoost();
@@ -418,9 +427,6 @@
             updateLivesDisplay();
             isPlaying = true;
             
-            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            startBtn.disabled = true;
-            viewLeaderboardBtn.classList.add('opacity-50', 'pointer-events-none');
             document.body.classList.add('hammer-active');
             submitSection.classList.remove('hidden');
 
@@ -431,16 +437,6 @@
 
             nextMoleLoop();
         }
-
-        normalDiffBtn.addEventListener('click', () => {
-            difficultyModal.classList.add('hidden');
-            startGame('normal');
-        });
-
-        hardDiffBtn.addEventListener('click', () => {
-            difficultyModal.classList.add('hidden');
-            startGame('hard');
-        });
 
         function endGame() {
             isPlaying = false;
@@ -462,9 +458,6 @@
                 gameOverAudio.play().catch(err => console.log("Game over audio play prevented:", err));
             }
 
-            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            startBtn.disabled = false;
-            viewLeaderboardBtn.classList.remove('opacity-50', 'pointer-events-none');
             document.body.classList.remove('hammer-active');
 
             const currentHighScore = localStorage.getItem(`whac_troy_highScore_${currentDifficulty}`) || 0;
@@ -477,42 +470,108 @@
             }
 
             finalScoreText.textContent = `You whacked Troy ${score} times on ${currentDifficulty.toUpperCase()} mode!`;
-            leaderboardTitle.textContent = `🌍 Global Top 10 (${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)})`;
+            leaderboardTitle.textContent = `🌍 GLOBAL TOP 10 (${currentDifficulty.toUpperCase()})`;
             modalOverlay.classList.remove('hidden');
-            fetchLeaderboard();
+            fetchClientSideLeaderboard(currentDifficulty, leaderboardList);
         }
 
-        async function fetchLeaderboard() {
-            leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">Loading scores...</div>`;
+        async function fetchClientSideLeaderboard(difficulty, targetElement) {
+            targetElement.innerHTML = `<div class="text-slate-400 text-center py-2">Loading scores...</div>`;
             if (!db) {
-                leaderboardList.innerHTML = `<div class="text-yellow-400 text-center py-2">Offline mode</div>`;
+                targetElement.innerHTML = `<div class="text-yellow-400 text-center py-2">Offline mode</div>`;
                 return;
             }
             try {
-                const scoresRef = query(ref(db, `leaderboard/${currentDifficulty}`), orderByChild('score'), limitToLast(10));
-                const snapshot = await get(scoresRef);
+                const snapshot = await get(ref(db, `leaderboard/${difficulty}`));
                 if (snapshot.exists()) {
                     let html = "";
-                    let rank = 1;
                     const items = [];
                     snapshot.forEach((childSnapshot) => {
-                        items.push(childSnapshot.val());
+                        const val = childSnapshot.val();
+                        if (val && typeof val.score === 'number') {
+                            items.push(val);
+                        }
                     });
                     items.sort((a, b) => b.score - a.score);
+                    const top10 = items.slice(0, 10);
 
-                    items.forEach((entry) => {
-                        html += `<div class="flex justify-between py-1 border-b border-slate-900 font-bold">
-                            <span>#${rank} ${escapeHtml(entry.name)}</span>
-                            <span class="text-green-400">${entry.score} pts</span>
+                    top10.forEach((entry, index) => {
+                        html += `<div class="flex justify-between items-center py-1 border-b border-slate-900 font-bold text-xs sm:text-sm">
+                            <span class="truncate pr-2">#${index + 1} ${escapeHtml(entry.name || 'Anonymous')}</span>
+                            <span class="text-green-400 whitespace-nowrap">${entry.score} pts</span>
                         </div>`;
-                        rank++;
                     });
-                    leaderboardList.innerHTML = html;
+                    targetElement.innerHTML = html;
                 } else {
-                    leaderboardList.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet on ${currentDifficulty} mode. Be the first!</div>`;
+                    targetElement.innerHTML = `<div class="text-slate-400 text-center py-2">No scores yet. Be the first!</div>`;
                 }
             } catch (err) {
-                leaderboardList.innerHTML = `<div class="text-red-400 text-center py-2">Failed to load leaderboard</div>`;
+                targetElement.innerHTML = `<div class="text-red-400 text-center py-2">Failed to load leaderboard</div>`;
+            }
+        }
+
+        async function fetchAllSideBySideLeaderboards() {
+            lbNormalList.innerHTML = `<div class="text-slate-500 text-center py-4">Loading...</div>`;
+            lbHardList.innerHTML = `<div class="text-slate-500 text-center py-4">Loading...</div>`;
+            
+            if (!db) {
+                lbNormalList.innerHTML = `<div class="text-yellow-400 text-center py-2">Offline mode</div>`;
+                lbHardList.innerHTML = `<div class="text-yellow-400 text-center py-2">Offline mode</div>`;
+                return;
+            }
+
+            // Normal Mode
+            try {
+                const normalSnap = await get(ref(db, 'leaderboard/normal'));
+                if (normalSnap.exists()) {
+                    let html = "";
+                    const items = [];
+                    normalSnap.forEach(c => {
+                        const val = c.val();
+                        if (val && typeof val.score === 'number') items.push(val);
+                    });
+                    items.sort((a, b) => b.score - a.score);
+                    const top10 = items.slice(0, 10);
+
+                    top10.forEach((entry, index) => {
+                        html += `<div class="flex justify-between items-center py-0.5 border-b border-slate-900 font-bold text-[11px] sm:text-xs">
+                            <span class="truncate pr-1">#${index + 1} ${escapeHtml(entry.name || 'Anonymous')}</span>
+                            <span class="text-green-400 whitespace-nowrap">${entry.score} pts</span>
+                        </div>`;
+                    });
+                    lbNormalList.innerHTML = html;
+                } else {
+                    lbNormalList.innerHTML = `<div class="text-slate-500 text-center py-4">No scores yet.</div>`;
+                }
+            } catch (e) {
+                lbNormalList.innerHTML = `<div class="text-red-400 text-center py-4">Error loading</div>`;
+            }
+
+            // Hard Mode
+            try {
+                const hardSnap = await get(ref(db, 'leaderboard/hard'));
+                if (hardSnap.exists()) {
+                    let html = "";
+                    const items = [];
+                    hardSnap.forEach(c => {
+                        const val = c.val();
+                        if (val && typeof val.score === 'number') items.push(val);
+                    });
+                    items.sort((a, b) => b.score - a.score);
+                    const top10 = items.slice(0, 10);
+
+                    top10.forEach((entry, index) => {
+                        html += `<div class="flex justify-between items-center py-0.5 border-b border-slate-900 font-bold text-[11px] sm:text-xs">
+                            <span class="truncate pr-1">#${index + 1} ${escapeHtml(entry.name || 'Anonymous')}</span>
+                            <span class="text-green-400 whitespace-nowrap">${entry.score} pts</span>
+                        </div>`;
+                    });
+                    lbHardList.innerHTML = html;
+                } else {
+                    lbHardList.innerHTML = `<div class="text-slate-500 text-center py-4">No scores yet.</div>`;
+                }
+            } catch (e) {
+                lbHardList.innerHTML = `<div class="text-red-400 text-center py-4">Error loading</div>`;
             }
         }
 
@@ -528,7 +587,7 @@
                 const scoresRef = ref(db, `leaderboard/${currentDifficulty}`);
                 await push(scoresRef, { name: name, score: score });
                 submitSection.classList.add('hidden');
-                fetchLeaderboard();
+                fetchClientSideLeaderboard(currentDifficulty, leaderboardList);
             } catch (err) {
                 alert("Error saving score. Try again!");
                 submitScoreBtn.disabled = false;
@@ -539,11 +598,6 @@
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         }
-
-        modalBtn.addEventListener('click', () => {
-            modalOverlay.classList.add('hidden');
-            difficultyModal.classList.remove('hidden');
-        });
     </script>
 </body>
 </html>
