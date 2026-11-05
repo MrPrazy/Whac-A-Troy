@@ -63,6 +63,7 @@
         <!-- Audio Elements -->
         <audio id="ouchAudio" src="ouch.mp3" preload="auto"></audio>
         <audio id="bgMusic" src="bg.mp3" loop preload="auto"></audio>
+        <audio id="gameOverAudio" src="igyo.mp3" preload="auto"></audio>
 
         <!-- Game Grid (3x3 Holes) with bg2.png background -->
         <div id="gameGrid" class="grid grid-cols-3 gap-3 sm:gap-4 w-full max-w-md aspect-square p-4 rounded-2xl border-4 border-slate-800 shadow-2xl relative bg-cover bg-center" style="background-image: url('bg2.png'); background-color: #020617;">
@@ -145,6 +146,7 @@
         const leaderboardList = document.getElementById('leaderboardList');
         const submitSection = document.getElementById('submitSection');
         const bgMusic = document.getElementById('bgMusic');
+        const gameOverAudio = document.getElementById('gameOverAudio');
 
         let score = 0;
         let lives = 3;
@@ -228,7 +230,7 @@
             chosen.mole.style.transform = 'translateY(0%)';
             chosen.mole.classList.add('mole-up');
 
-            // Time mole stays up before hiding and costing a life if missed (gets faster/shorter every 5 whacs)
+            // Time mole stays up before hiding and costing a life if missed
             popTimer = setTimeout(() => {
                 if (isPlaying && currentMoleHole === chosenIndex) {
                     chosen.mole.classList.remove('mole-up');
@@ -266,7 +268,7 @@
         function startGame() {
             score = 0;
             lives = 3;
-            currentPopDuration = 5000; // Starts at a full 5 seconds
+            currentPopDuration = 5000; // Starts at 5 seconds
             scoreDisplay.textContent = score;
             updateLivesDisplay();
             isPlaying = true;
@@ -294,6 +296,16 @@
                 holes[currentMoleHole].mole.classList.remove('mole-up');
                 holes[currentMoleHole].mole.style.transform = 'translateY(100%)';
                 currentMoleHole = null;
+            }
+
+            // Pause background music and play igyo.mp3 game over sound
+            if (bgMusic) {
+                bgMusic.pause();
+                bgMusic.currentTime = 0;
+            }
+            if (gameOverAudio) {
+                gameOverAudio.currentTime = 0;
+                gameOverAudio.play().catch(err => console.log("Game over audio play prevented:", err));
             }
 
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
